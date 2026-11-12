@@ -1,0 +1,105 @@
+<UserControl x:Class="RobloxTracker.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28" MaxWidth="760" HorizontalAlignment="Left">
+            <TextBlock Text="Paramètres" Style="{StaticResource H1}" />
+
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="Général" Style="{StaticResource H2}" />
+                    <CheckBox Content="Lancer Roblox Tracker au démarrage de Windows (réduit dans la barre)" IsChecked="{Binding StartWithWindows}" />
+                    <CheckBox Content="Fermer la fenêtre réduit l'app dans la zone de notification (le suivi continue)"
+                              IsChecked="{Binding CloseToTray}" Margin="0,10,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <TextBlock Text="Rafraîchir les infos des jeux toutes les" VerticalAlignment="Center" />
+                        <ComboBox ItemsSource="{Binding RefreshIntervals}" SelectedItem="{Binding RefreshIntervalMinutes}" Margin="10,0" MinWidth="70" />
+                        <TextBlock Text="minutes" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Discord" Style="{StaticResource H2}" />
+                    <CheckBox Content="Afficher le jeu en cours sur mon profil Discord (nom, durée, bouton Rejoindre)"
+                              IsChecked="{Binding DiscordPresence}" />
+                    <DockPanel Margin="0,14,0,0">
+                        <TextBlock Text="Application ID" VerticalAlignment="Center" Margin="0,0,10,0" />
+                        <TextBox Text="{Binding DiscordAppId}" MinWidth="220" HorizontalAlignment="Left" />
+                    </DockPanel>
+                    <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Text="Discord doit être ouvert sur ce PC. Les boutons ne sont visibles que par les autres : Discord ne te montre pas les tiens." />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Anti-AFK" Style="{StaticResource H2}" />
+                    <CheckBox Content="Appuyer sur Espace dans Roblox pendant une partie pour éviter la déconnexion"
+                              IsChecked="{Binding AntiAfkEnabled}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
+                        <TextBlock Text="Toutes les" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding AntiAfkMinMinutes, UpdateSourceTrigger=PropertyChanged}" Margin="10,0" MinWidth="50" />
+                        <TextBlock Text="à" VerticalAlignment="Center" />
+                        <TextBox Text="{Binding AntiAfkMaxMinutes, UpdateSourceTrigger=PropertyChanged}" Margin="10,0" MinWidth="50" />
+                        <TextBlock Text="minutes (au hasard)" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="Roblox déconnecte après 20 minutes sans action : choisis une durée plus courte."
+                               Foreground="{StaticResource DangerBrush}" Margin="0,8,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding AntiAfkTooLong, Converter={StaticResource Vis}}" />
+                    <TextBlock Style="{StaticResource Muted}" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Text="Un avertissement apparaît 5 s avant le passage sur Roblox, puis le focus revient à ta fenêtre. Rien ne se passe si tu es déjà en train de jouer." />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Données" Style="{StaticResource H2}" />
+                    <TextBlock Text="Base de données et images" Style="{StaticResource Muted}" />
+                    <DockPanel Margin="0,4,0,12">
+                        <Button DockPanel.Dock="Right" Content="Ouvrir" Command="{Binding OpenDataDirCommand}" Margin="8,0,0,0" />
+                        <TextBlock Text="{Binding DataDir}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+                    <TextBlock Text="Logs Roblox surveillés" Style="{StaticResource Muted}" />
+                    <DockPanel Margin="0,4,0,0">
+                        <Button DockPanel.Dock="Right" Content="Ouvrir" Command="{Binding OpenLogsDirCommand}" Margin="8,0,0,0" />
+                        <TextBlock Text="{Binding LogsDir}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </DockPanel>
+                    <TextBlock Text="Dossier introuvable : Roblox n'a encore jamais été lancé sur ce PC."
+                               Foreground="{StaticResource DangerBrush}" Margin="0,6,0,0"
+                               Visibility="{Binding LogsDirExists, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Importer l'ancien tracker" Style="{StaticResource H2}" />
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Content="Importer un dossier…" Command="{Binding ImportBackupCommand}"
+                                Margin="8,0,0,0" VerticalAlignment="Center" />
+                        <TextBlock Text="Choisis le dossier contenant les sauvegardes .rtb. Un nouvel import remplace le précédent."
+                                   Style="{StaticResource Muted}" TextWrapping="Wrap" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <TextBlock Text="{Binding ImportStatus}" Margin="0,8,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding ImportStatus, Converter={StaticResource Vis}}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0" Visibility="{Binding ErrorText, Converter={StaticResource Vis}}">
+                <StackPanel>
+                    <TextBlock Text="Dernières erreurs" Style="{StaticResource H2}" Foreground="{StaticResource DangerBrush}" />
+                    <TextBlock Text="{Binding ErrorText}" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" />
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <StackPanel>
+                    <TextBlock Text="Comment ça marche" Style="{StaticResource H2}" />
+                    <TextBlock TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}"
+                               Text="Roblox Tracker lit les fichiers journaux que Roblox écrit pendant que tu joues : il détecte quand tu rejoins et quitte une expérience, sans rien modifier dans Roblox. Les noms, images et dates de mise à jour viennent des API publiques de Roblox." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

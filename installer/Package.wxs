@@ -1,0 +1,74 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui"
+     xmlns:util="http://wixtoolset.org/schemas/v4/wxs/util">
+
+  <!-- Installation par utilisateur (pas de droits administrateur) dans %LOCALAPPDATA%\Programs\Roblox Tracker. -->
+  <Package Name="Roblox Tracker" Manufacturer="Roblox Tracker" Version="$(AppVersion)"
+           UpgradeCode="6F1C2A3E-8B47-4D2A-9C55-2E0B7A41D9F3" Scope="perUser" Language="1036" Codepage="1252">
+
+    <!-- Mise à jour : remplace seulement le programme ; les données (%LOCALAPPDATA%\RobloxTracker) ne sont jamais touchées. -->
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="Une version plus récente de Roblox Tracker est déjà installée." />
+    <MediaTemplate EmbedCab="yes" CompressionLevel="high" />
+
+    <Icon Id="AppIcon" SourceFile="..\src\RobloxTracker.App\Assets\app.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <!-- Ferme l'app si elle tourne (mise à jour / désinstallation). -->
+    <util:CloseApplication Target="RobloxTracker.exe" CloseMessage="yes" TerminateProcess="0" RebootPrompt="no" />
+
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsDir" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="Roblox Tracker" />
+      </Directory>
+    </StandardDirectory>
+
+    <ComponentGroup Id="AppComponents">
+      <Component Id="MainExe" Directory="INSTALLFOLDER" Guid="3D9A6E21-54C8-4B0F-A7E2-91C4F08B2D6A">
+        <File Id="MainExeFile" Source="$(PublishDir)RobloxTracker.exe" />
+        <RegistryValue Root="HKCU" Key="Software\RobloxTracker" Name="InstallDir" Type="string" Value="[INSTALLFOLDER]" KeyPath="yes" />
+        <RemoveFolder Id="RemoveInstallFolder" On="uninstall" />
+        <RemoveFolder Id="RemoveProgramsDir" Directory="ProgramsDir" On="uninstall" />
+      </Component>
+
+      <Component Id="StartMenuShortcut" Directory="ProgramMenuFolder">
+        <Shortcut Id="StartMenuShortcut" Name="Roblox Tracker" Description="Suivi du temps de jeu Roblox"
+                  Target="[INSTALLFOLDER]RobloxTracker.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\RobloxTracker" Name="StartMenuShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <Component Id="DesktopShortcut" Directory="DesktopFolder">
+        <Shortcut Id="DesktopShortcut" Name="Roblox Tracker" Description="Suivi du temps de jeu Roblox"
+                  Target="[INSTALLFOLDER]RobloxTracker.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon" />
+        <RegistryValue Root="HKCU" Key="Software\RobloxTracker" Name="DesktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+
+      <!-- Lancement avec Windows (même valeur que l'option des Paramètres) ; retirée à la désinstallation. -->
+      <Component Id="RunAtStartup" Directory="INSTALLFOLDER">
+        <RegistryValue Root="HKCU" Key="Software\Microsoft\Windows\CurrentVersion\Run" Name="RobloxTracker" Type="string"
+                       Value="&quot;[INSTALLFOLDER]RobloxTracker.exe&quot; --minimized" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="Main" Title="Roblox Tracker">
+      <ComponentGroupRef Id="AppComponents" />
+    </Feature>
+
+    <!-- Interface : accueil + licence, puis case « Lancer Roblox Tracker » à la fin. -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    <WixVariable Id="WixUIBannerBmp" Value="Banner.bmp" />
+    <WixVariable Id="WixUIDialogBmp" Value="Dialog.bmp" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Lancer Roblox Tracker" />
+    <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+    <Property Id="WixShellExecTarget" Value="[#MainExeFile]" />
+    <CustomAction Id="LaunchApplication" DllEntry="WixShellExec" Impersonate="yes" BinaryRef="Wix4UtilCA_X64" />
+
+    <UI>
+      <ui:WixUI Id="WixUI_Minimal" />
+      <Publish Dialog="ExitDialog" Control="Finish" Event="DoAction" Value="LaunchApplication"
+               Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed" />
+    </UI>
+  </Package>
+</Wix>

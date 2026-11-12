@@ -1,0 +1,17 @@
+<Window x:Class="RobloxTracker.App.Views.AntiAfkWarningWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Anti-AFK" WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" SizeToContent="WidthAndHeight" ShowInTaskbar="False"
+        Topmost="True" ShowActivated="False" Focusable="False">
+    <Border Style="{StaticResource Card}" BorderBrush="{StaticResource OrangeBrush}" Width="340">
+        <DockPanel>
+            <Button DockPanel.Dock="Right" Content="Passer" Click="OnSkip" Focusable="False"
+                    VerticalAlignment="Center" Margin="12,0,0,0" />
+            <StackPanel>
+                <TextBlock Text="Anti-AFK" Style="{StaticResource H2}" Margin="0,0,0,4" />
+                <TextBlock x:Name="Message" TextWrapping="Wrap" Foreground="{StaticResource TextBrush}" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

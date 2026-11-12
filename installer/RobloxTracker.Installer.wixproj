@@ -1,0 +1,19 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+
+  <PropertyGroup>
+    <OutputName>RobloxTracker-Setup</OutputName>
+    <Platform>x64</Platform>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <Cultures>fr-FR</Cultures>
+    <!-- Dossier produit par build-installer.ps1 (dotnet publish autonome, fichier unique). -->
+    <PublishDir>$(MSBuildThisFileDirectory)..\publish\</PublishDir>
+    <AppVersion Condition="'$(AppVersion)' == ''">1.0.0</AppVersion>
+    <DefineConstants>PublishDir=$(PublishDir);AppVersion=$(AppVersion)</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,245 @@
+<UserControl x:Class="RobloxTracker.App.Views.GameDetailView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:RobloxTracker.App.Controls"
+             xmlns:v="clr-namespace:RobloxTracker.App.Views">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,20,32,28">
+            <Button Style="{StaticResource GhostButton}" Command="{Binding BackCommand}" HorizontalAlignment="Left" Margin="-8,0,0,12">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE72B;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center" />
+                    <TextBlock Text="Retour" Margin="8,0,0,0" />
+                </StackPanel>
+            </Button>
+
+            <!-- En-tête : bannière avec la vignette du jeu en fond -->
+            <Border CornerRadius="16" ClipToBounds="True" MinHeight="260" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Grid>
+                    <c:GameImage ImagePath="{Binding Game.ThumbnailPath}" Title=" " DecodeWidth="1280" CornerRadius="15" />
+                    <Border CornerRadius="15">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#F50D0F14" Offset="0" />
+                                <GradientStop Color="#D90D0F14" Offset="0.45" />
+                                <GradientStop Color="#400D0F14" Offset="1" />
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border Background="{StaticResource ImageScrim}" CornerRadius="15" Opacity="0.8" />
+
+                    <StackPanel Margin="28,26" VerticalAlignment="Bottom" MaxWidth="720" HorizontalAlignment="Left">
+                        <c:GameImage Width="72" Height="72" ImagePath="{Binding Game.IconPath}" Title="{Binding Game.Name}" DecodeWidth="160"
+                                     CornerRadius="14" HorizontalAlignment="Left" BorderBrush="#33FFFFFF" BorderThickness="1" />
+                        <TextBlock Text="{Binding Game.Name}" FontSize="30" FontWeight="Bold" TextWrapping="Wrap" Margin="0,14,0,0" />
+                        <WrapPanel Margin="0,6,0,0">
+                            <TextBlock Text="{Binding Game.CreatorName, StringFormat='par {0}'}" Foreground="#C8CDD6" Margin="0,0,14,0"
+                                       VerticalAlignment="Center" />
+                            <Border Style="{StaticResource Pill}" Background="#33FFFFFF" Margin="0,0,6,0"
+                                    Visibility="{Binding Game.Genre, Converter={StaticResource Vis}}">
+                                <TextBlock Text="{Binding Game.Genre}" FontSize="11" />
+                            </Border>
+                            <Border Style="{StaticResource Pill}" Background="#33FFFFFF"
+                                    Visibility="{Binding LikeText, Converter={StaticResource Vis}}">
+                                <TextBlock Text="{Binding LikeText}" FontSize="11" />
+                            </Border>
+                        </WrapPanel>
+                        <WrapPanel Margin="0,18,0,0">
+                            <Button Style="{StaticResource AccentButton}" Command="{Binding PlayCommand}" Margin="0,0,8,0" Padding="20,9">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE768;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center" Foreground="White" />
+                                    <TextBlock Text="Jouer" Margin="8,0,0,0" Foreground="White" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding OpenWebCommand}" Margin="0,0,8,0" Background="#26FFFFFF" BorderBrush="#33FFFFFF">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE774;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Page Roblox" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Button Command="{Binding RefreshFromRobloxCommand}" Margin="0,0,8,0" Background="#26FFFFFF" BorderBrush="#33FFFFFF"
+                                    ToolTip="Recharger les infos et les images depuis Roblox">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE72C;" FontFamily="{StaticResource IconFont}" VerticalAlignment="Center" />
+                                    <TextBlock Text="Actualiser" Margin="8,0,0,0" />
+                                </StackPanel>
+                            </Button>
+                            <Border Background="#26FFFFFF" BorderBrush="#33FFFFFF" BorderThickness="1" CornerRadius="8" Margin="0,0,8,0" ToolTip="Favori">
+                                <ToggleButton Style="{StaticResource StarToggle}" IsChecked="{Binding IsFavorite}" Margin="5,3" Foreground="White" />
+                            </Border>
+                            <Button Style="{StaticResource GhostButton}" Command="{Binding DeleteGameCommand}" Padding="9"
+                                    ToolTip="Supprimer ce jeu et son historique">
+                                <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" Foreground="{StaticResource DangerBrush}" />
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Statistiques -->
+            <UniformGrid Columns="4" Margin="-6,12,-6,0">
+                <HeaderedContentControl Style="{StaticResource StatCard}" Header="Temps total" Tag="&#xE823;"
+                                        Foreground="{StaticResource Accent2Brush}">
+                    <TextBlock Text="{Binding GameStats.Total, Converter={StaticResource Duration}}" Style="{StaticResource BigNumber}" FontSize="21" />
+                </HeaderedContentControl>
+                <HeaderedContentControl Style="{StaticResource StatCard}" Header="7 derniers jours" Tag="&#xE787;"
+                                        Foreground="{StaticResource AccentBrush}">
+                    <TextBlock Text="{Binding GameStats.Last7Days, Converter={StaticResource Duration}}" Style="{StaticResource BigNumber}" FontSize="21" />
+                </HeaderedContentControl>
+                <HeaderedContentControl Style="{StaticResource StatCard}" Header="Sessions" Tag="&#xE768;"
+                                        Foreground="{StaticResource SuccessBrush}">
+                    <TextBlock Text="{Binding GameStats.SessionCount}" Style="{StaticResource BigNumber}" FontSize="21" />
+                </HeaderedContentControl>
+                <HeaderedContentControl Style="{StaticResource StatCard}" Header="Durée moyenne" Tag="&#xE916;"
+                                        Foreground="{StaticResource OrangeBrush}">
+                    <TextBlock Text="{Binding AverageSession, Converter={StaticResource Duration}}" Style="{StaticResource BigNumber}" FontSize="21" />
+                </HeaderedContentControl>
+            </UniformGrid>
+
+            <!-- Statistiques par mois / année -->
+            <v:PeriodStatsView DataContext="{Binding Period}" Margin="0,12,0,0" />
+
+            <Grid Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Infos Roblox -->
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Infos Roblox" Style="{StaticResource H2}" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition /><RowDefinition /><RowDefinition /><RowDefinition />
+                                <RowDefinition /><RowDefinition /><RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid.Resources>
+                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Margin" Value="0,0,16,8" />
+                                </Style>
+                            </Grid.Resources>
+                            <TextBlock Grid.Row="0" Text="Joueurs en ligne" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Game.Playing, StringFormat='{}{0:N0}'}" />
+                            <TextBlock Grid.Row="1" Text="Visites" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Game.Visits, StringFormat='{}{0:N0}'}" />
+                            <TextBlock Grid.Row="2" Text="Favoris Roblox" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Game.FavoritedCount, StringFormat='{}{0:N0}'}" />
+                            <TextBlock Grid.Row="3" Text="Joueurs max / serveur" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding Game.MaxPlayers}" />
+                            <TextBlock Grid.Row="4" Text="Créé le" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Game.CreatedOnRoblox, Converter={StaticResource LocalDate}, ConverterParameter='d MMMM yyyy'}" />
+                            <TextBlock Grid.Row="5" Text="Dernière mise à jour" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding Game.UpdatedOnRoblox, Converter={StaticResource LocalDate}, ConverterParameter='d MMMM yyyy, HH:mm'}" />
+                            <TextBlock Grid.Row="6" Text="Ajouté au suivi" Foreground="{StaticResource MutedBrush}" />
+                            <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding Game.FirstSeenUtc, Converter={StaticResource LocalDate}, ConverterParameter='d MMMM yyyy'}" />
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Organisation -->
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Organisation" Style="{StaticResource H2}" />
+                        <TextBlock Text="Catégorie" Style="{StaticResource Muted}" Margin="0,0,0,4" />
+                        <ComboBox ItemsSource="{Binding CategoryOptions}" SelectedItem="{Binding SelectedCategory}" HorizontalAlignment="Left" MinWidth="200" />
+                        <TextBlock Text="Groupes" Style="{StaticResource Muted}" Margin="0,12,0,4" />
+                        <TextBlock Text="Aucun groupe. Crée-en dans « Catégories &amp; groupes »." Style="{StaticResource Muted}"
+                                   Visibility="{Binding GroupOptions.Count, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+                        <ItemsControl ItemsSource="{Binding GroupOptions}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsMember}" Margin="0,0,14,6" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="Notes" Style="{StaticResource Muted}" Margin="0,12,0,4" />
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" TextWrapping="Wrap"
+                                 MinHeight="70" VerticalScrollBarVisibility="Auto" />
+                        <Button Content="Enregistrer la note" Command="{Binding SaveNotesCommand}" HorizontalAlignment="Right" Margin="0,8,0,0" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <!-- Description -->
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0"
+                    Visibility="{Binding Game.Description, Converter={StaticResource Vis}}">
+                <StackPanel>
+                    <TextBlock Text="Description" Style="{StaticResource H2}" />
+                    <TextBlock Text="{Binding Game.Description}" TextWrapping="Wrap" Foreground="{StaticResource MutedBrush}" MaxHeight="220" />
+                </StackPanel>
+            </Border>
+
+            <Grid Margin="0,12,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Sessions -->
+                <Border Style="{StaticResource Card}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Sessions" Style="{StaticResource H2}" />
+                        <TextBlock Text="Aucune session." Style="{StaticResource Muted}"
+                                   Visibility="{Binding Sessions.Count, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+                        <ItemsControl ItemsSource="{Binding Sessions}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Padding="6,2" Margin="8,0,0,0"
+                                                Foreground="{StaticResource MutedBrush}" ToolTip="Supprimer cette session"
+                                                Command="{Binding DataContext.DeleteSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFont}" FontSize="11" />
+                                        </Button>
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Duration, Converter={StaticResource Duration}}"
+                                                   FontWeight="SemiBold" VerticalAlignment="Center" />
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StartUtc, Converter={StaticResource LocalDate}, ConverterParameter='ddd d MMM yyyy, HH:mm'}" />
+                                            <TextBlock Text=" · en cours" Foreground="{StaticResource SuccessBrush}"
+                                                       Visibility="{Binding IsActive, Converter={StaticResource Vis}}" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Mises à jour -->
+                <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Historique des mises à jour" Style="{StaticResource H2}" />
+                        <TextBlock Text="Aucune mise à jour détectée." Style="{StaticResource Muted}"
+                                   Visibility="{Binding Updates.Count, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+                        <ItemsControl ItemsSource="{Binding Updates}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,0,0,10">
+                                        <TextBlock DockPanel.Dock="Left" Text="&#xE895;" FontFamily="{StaticResource IconFont}"
+                                                   Foreground="{StaticResource AccentBrush}" Margin="0,2,10,0" />
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding UpdatedOnRoblox, Converter={StaticResource LocalDate}, ConverterParameter='d MMMM yyyy, HH:mm'}"
+                                                       FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding Summary}" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

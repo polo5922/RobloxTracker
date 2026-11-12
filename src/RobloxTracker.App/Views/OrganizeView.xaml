@@ -1,0 +1,141 @@
+<UserControl x:Class="RobloxTracker.App.Views.OrganizeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:RobloxTracker.App.Controls">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,28">
+            <TextBlock Text="Catégories &amp; groupes" Style="{StaticResource H1}" />
+            <TextBlock Style="{StaticResource Muted}" Margin="0,-6,0,16" TextWrapping="Wrap"
+                       Text="Un jeu a une seule catégorie (couleur, filtre principal) et peut appartenir à plusieurs groupes. L'affectation se fait depuis la fiche du jeu." />
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Catégories -->
+                <Border Style="{StaticResource Card}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Catégories" Style="{StaticResource H2}" />
+
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Content="Ajouter" Margin="8,0,0,0"
+                                    Command="{Binding AddCategoryCommand}" />
+                            <Border DockPanel.Dock="Left" Width="22" Height="22" CornerRadius="11" Margin="0,0,8,0"
+                                    Background="{Binding NewCategoryColor, Converter={StaticResource HexBrush}}" />
+                            <TextBox Text="{Binding NewCategoryName, UpdateSourceTrigger=PropertyChanged}" ToolTip="Nom de la nouvelle catégorie" />
+                        </DockPanel>
+                        <ItemsControl ItemsSource="{Binding Palette}" Margin="30,8,0,12">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource ClickableItem}" Width="22" Height="22" Margin="0,0,6,0"
+                                            Command="{Binding DataContext.PickNewCategoryColorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Border CornerRadius="10" Background="{Binding Converter={StaticResource HexBrush}}" />
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="Aucune catégorie." Style="{StaticResource Muted}"
+                                   Visibility="{Binding Categories.Count, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel Margin="0,0,0,8">
+                                        <Button DockPanel.Dock="Left" Style="{StaticResource ClickableItem}" Width="22" Height="22" Margin="0,0,8,0"
+                                                ToolTip="Changer la couleur"
+                                                Command="{Binding DataContext.CycleCategoryColorCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Border CornerRadius="10" Background="{Binding ColorHex, Converter={StaticResource HexBrush}}" />
+                                        </Button>
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Foreground="{StaticResource DangerBrush}"
+                                                ToolTip="Supprimer" Padding="8,4"
+                                                Command="{Binding DataContext.DeleteCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" />
+                                        </Button>
+                                        <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" ToolTip="Enregistrer le nom" Padding="8,4"
+                                                Command="{Binding DataContext.SaveCategoryCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <TextBlock Text="&#xE74E;" FontFamily="{StaticResource IconFont}" />
+                                        </Button>
+                                        <TextBlock DockPanel.Dock="Right" Text="{Binding GameCount, StringFormat='{}{0} jeux'}" Style="{StaticResource Muted}"
+                                                   VerticalAlignment="Center" Margin="8,0" />
+                                        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Groupes -->
+                <Border Grid.Column="2" Style="{StaticResource Card}" VerticalAlignment="Top">
+                    <StackPanel>
+                        <TextBlock Text="Groupes" Style="{StaticResource H2}" />
+
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource AccentButton}" Content="Ajouter" Margin="8,0,0,0"
+                                    Command="{Binding AddGroupCommand}" VerticalAlignment="Top" />
+                            <StackPanel>
+                                <TextBox Text="{Binding NewGroupName, UpdateSourceTrigger=PropertyChanged}" ToolTip="Nom du nouveau groupe" />
+                                <TextBox Text="{Binding NewGroupDescription, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0"
+                                         ToolTip="Description (facultatif)" />
+                            </StackPanel>
+                        </DockPanel>
+
+                        <TextBlock Text="Aucun groupe." Style="{StaticResource Muted}" Margin="0,12,0,0"
+                                   Visibility="{Binding Groups.Count, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+                        <ItemsControl ItemsSource="{Binding Groups}" Margin="0,14,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{StaticResource SurfaceHoverBrush}" CornerRadius="8" Padding="10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Foreground="{StaticResource DangerBrush}"
+                                                        ToolTip="Supprimer" Padding="8,4"
+                                                        Command="{Binding DataContext.DeleteGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <TextBlock Text="&#xE74D;" FontFamily="{StaticResource IconFont}" />
+                                                </Button>
+                                                <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" ToolTip="Enregistrer" Padding="8,4"
+                                                        Command="{Binding DataContext.SaveGroupCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}">
+                                                    <TextBlock Text="&#xE74E;" FontFamily="{StaticResource IconFont}" />
+                                                </Button>
+                                                <TextBlock DockPanel.Dock="Right" Text="{Binding GameCount, StringFormat='{}{0} jeux'}" Style="{StaticResource Muted}"
+                                                           VerticalAlignment="Center" Margin="8,0" />
+                                                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
+                                            </DockPanel>
+                                            <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Margin="0,6,0,0" ToolTip="Description" />
+                                            <ItemsControl ItemsSource="{Binding IconPaths}" Margin="0,8,0,0">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <WrapPanel />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <c:GameImage Width="28" Height="28" Margin="0,0,4,0" ImagePath="{Binding}" Title="?" DecodeWidth="64" />
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

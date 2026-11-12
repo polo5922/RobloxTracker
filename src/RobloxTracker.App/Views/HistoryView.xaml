@@ -1,0 +1,78 @@
+<UserControl x:Class="RobloxTracker.App.Views.HistoryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:RobloxTracker.App.Controls"
+             xmlns:vm="clr-namespace:RobloxTracker.App.ViewModels"
+             xmlns:core="clr-namespace:RobloxTracker.Core.Services;assembly=RobloxTracker.Core">
+    <DockPanel Margin="32,28,20,0">
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,12,0">
+            <DockPanel>
+                <ComboBox DockPanel.Dock="Right" ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}"
+                          MinWidth="170" VerticalAlignment="Center" />
+                <TextBlock Text="Historique" Style="{StaticResource H1}" />
+            </DockPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <TextBlock Text="{Binding SessionCount, StringFormat='{}{0} sessions · '}" Style="{StaticResource Muted}" FontSize="14" />
+                <TextBlock Text="{Binding PeriodTotal, Converter={StaticResource Duration}}" FontSize="14" FontWeight="SemiBold" />
+                <TextBlock Text=" de jeu" Style="{StaticResource Muted}" FontSize="14" />
+            </StackPanel>
+
+            <TextBlock Text="Aucune session sur cette période." Style="{StaticResource Muted}" FontSize="14"
+                       Visibility="{Binding Items.Count, Converter={StaticResource Vis}, ConverterParameter=invert}" />
+        </StackPanel>
+
+        <!-- Liste virtualisée : en-têtes de jour et sessions à plat. -->
+        <ItemsControl ItemsSource="{Binding Items}" Style="{StaticResource VirtualList}" Padding="0,0,12,24">
+            <ItemsControl.Resources>
+                <DataTemplate DataType="{x:Type vm:DayHeader}">
+                    <DockPanel Margin="0,18,0,8">
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Pill}">
+                            <TextBlock Text="{Binding Total, Converter={StaticResource Duration}}" FontSize="12" FontWeight="SemiBold" />
+                        </Border>
+                        <Border Width="3" Height="16" CornerRadius="2" Background="{StaticResource AccentGradient}" VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding Label}" FontSize="15" FontWeight="SemiBold" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    </DockPanel>
+                </DataTemplate>
+
+                <DataTemplate DataType="{x:Type core:SessionInfo}">
+                    <Border Margin="0,0,0,6">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource GhostButton}" Padding="10,8" Margin="4,0,0,0" VerticalAlignment="Center"
+                                    Foreground="{StaticResource MutedBrush}" ToolTip="Supprimer cette session"
+                                    Command="{Binding DataContext.DeleteSessionCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding}">
+                                <TextBlock Text="&#xE711;" FontFamily="{StaticResource IconFont}" FontSize="11" />
+                            </Button>
+                            <Button Style="{StaticResource ClickableItem}"
+                                    Command="{Binding DataContext.OpenGameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                    CommandParameter="{Binding UniverseId}">
+                                <DockPanel Margin="10,8">
+                                    <TextBlock Text="{Binding StartUtc, Converter={StaticResource LocalDate}, ConverterParameter='HH:mm'}"
+                                               Width="46" FontWeight="SemiBold" Foreground="{StaticResource MutedBrush}" VerticalAlignment="Center" />
+                                    <c:GameImage Width="40" Height="40" ImagePath="{Binding IconPath}" Title="{Binding GameName}" DecodeWidth="96" />
+                                    <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center" Margin="10,0,0,0">
+                                        <TextBlock Text="{Binding Duration, Converter={StaticResource Duration}}" FontWeight="SemiBold"
+                                                   HorizontalAlignment="Right" />
+                                        <Border Style="{StaticResource Pill}" Padding="6,1" Margin="0,3,0,0" HorizontalAlignment="Right"
+                                                Background="#2622C55E" Visibility="{Binding IsActive, Converter={StaticResource Vis}}">
+                                            <TextBlock Text="En cours" Foreground="{StaticResource SuccessBrush}" FontSize="10" FontWeight="SemiBold" />
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding GameName}" FontWeight="SemiBold" />
+                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                            <TextBlock Text="{Binding StartUtc, Converter={StaticResource LocalDate}, ConverterParameter='HH:mm'}" Style="{StaticResource Muted}" />
+                                            <TextBlock Text=" → " Style="{StaticResource Muted}" Visibility="{Binding EndUtc, Converter={StaticResource Vis}}" />
+                                            <TextBlock Text="{Binding EndUtc, Converter={StaticResource LocalDate}, ConverterParameter='HH:mm'}" Style="{StaticResource Muted}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
+                        </DockPanel>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.Resources>
+        </ItemsControl>
+    </DockPanel>
+</UserControl>
