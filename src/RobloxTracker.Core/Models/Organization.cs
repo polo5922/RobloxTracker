@@ -34,4 +34,5 @@ public class LogFileState
     public long Position { get; set; }
     public DateTime? LastTimestampUtc { get; set; }
     public int? ActiveSessionId { get; set; }
+    public DateTime? LastJoinUtc { get; set; }
 }

@@ -76,6 +76,64 @@ public sealed class SessionTrackerTests : IDisposable
     }
 
     [Fact]
+    public void Join_is_detected_while_Roblox_keeps_the_log_open()
+    {
+        var tracker = NewTracker();
+        using var writer = new FileStream(LogPath(), FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+        writer.Write(System.Text.Encoding.UTF8.GetBytes(Line(T0, "start")));
+        writer.Flush();
+        tracker.ScanOnce();
+
+        writer.Write(System.Text.Encoding.UTF8.GetBytes(Join(T0.AddSeconds(5), Job1, 100)));
+        writer.Flush(); // pas de fermeture : la taille annoncée par le dossier reste périmée
+        Assert.True(tracker.ScanOnce());
+        Assert.Null(Assert.Single(Sessions()).EndUtc);
+    }
+
+    [Fact]
+    public void Another_Roblox_launch_does_not_close_the_game_in_progress()
+    {
+        var tracker = NewTracker();
+        using var writer = new FileStream(LogPath(), FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+        tracker.ScanOnce();
+        writer.Write(System.Text.Encoding.UTF8.GetBytes(Join(T0, Job1, 100)));
+        writer.Flush();
+        tracker.ScanOnce();
+
+        var other = LogPath("0.123_20261030T160000Z_Player_DEF_last.log");
+        Append(Line(T0.AddHours(1), "launcher"), other);
+        File.SetLastWriteTimeUtc(other, DateTime.UtcNow.AddMinutes(1));
+        tracker.ScanOnce();
+        Assert.Null(Assert.Single(Sessions()).EndUtc);
+    }
+
+    [Fact]
+    public void Old_connection_closing_after_a_rejoin_does_not_end_the_new_session()
+    {
+        var tracker = NewTracker();
+        File.WriteAllText(LogPath(), "");
+        tracker.ScanOnce();
+
+        var rejoin = T0.AddMinutes(15);
+        Append(Join(T0, Job1, 100) + Line(rejoin, "Client:Disconnect") + Join(rejoin.AddMilliseconds(400), Job1, 100)
+               + Line(rejoin.AddMilliseconds(600), "Client:Disconnect") + Line(rejoin.AddMilliseconds(700), "NetworkClient:Remove"));
+        tracker.ScanOnce();
+        Assert.Null(Assert.Single(Sessions()).EndUtc);
+    }
+
+    [Fact]
+    public void Leaving_to_the_home_screen_right_after_joining_ends_the_session()
+    {
+        var tracker = NewTracker();
+        File.WriteAllText(LogPath(), "");
+        tracker.ScanOnce();
+
+        Append(Join(T0, Job1, 100) + Line(T0.AddSeconds(3), "leaveUGCGameInternal"));
+        tracker.ScanOnce();
+        Assert.Equal(T0.AddSeconds(3), Assert.Single(Sessions()).EndUtc);
+    }
+
+    [Fact]
     public void Joining_another_game_closes_the_previous_session()
     {
         var tracker = NewTracker();

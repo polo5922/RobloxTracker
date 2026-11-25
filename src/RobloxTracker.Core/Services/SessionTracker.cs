@@ -15,6 +15,12 @@ public sealed class SessionTracker(ITrackerDbFactory dbFactory, string logsDir, 
     private readonly SemaphoreSlim _wake = new(0, 1);
     private bool _scannedOnce;
 
+    /// <summary>Nombre de logs récents ouverts à chaque passage pour connaître leur vraie taille.</summary>
+    private const int ProbedRecentFiles = 5;
+
+    /// <summary>Lors d'une reconnexion, l'ancienne connexion peut se fermer dans le log juste après l'arrivée sur le nouveau serveur.</summary>
+    private static readonly TimeSpan JoinGrace = TimeSpan.FromSeconds(10);
+
     /// <summary>Filet de sécurité : le dossier est surveillé, mais Windows peut retarder les notifications d'un fichier ouvert.</summary>
     public TimeSpan PollInterval { get; init; } = TimeSpan.FromSeconds(1);
 
@@ -119,6 +125,9 @@ public sealed class SessionTracker(ITrackerDbFactory dbFactory, string logsDir, 
         if (!_scannedOnce) changed |= SessionMerger.MergeAll(db) > 0;
         _scannedOnce = true;
 
+        var recent = files.OrderByDescending(f => f.CreationTimeUtc).Take(ProbedRecentFiles)
+            .Select(f => f.FullName).ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         foreach (var file in files)
         {
             if (!states.TryGetValue(file.FullName, out var state))
@@ -129,11 +138,21 @@ public sealed class SessionTracker(ITrackerDbFactory dbFactory, string logsDir, 
                 states[file.FullName] = state;
             }
 
-            if (file.Length < state.Position) state.Position = 0; // fichier réécrit
-            if (file.Length > state.Position) changed |= ReadNewLines(db, file, state);
+            // Tant que Roblox garde le log ouvert, la taille annoncée par le dossier peut rester figée plusieurs minutes :
+            // seule l'ouverture du fichier donne la vraie.
+            if (file.Length != state.Position || state.ActiveSessionId is not null || recent.Contains(file.FullName))
+            {
+                try
+                {
+                    changed |= ReadNewLines(db, file, state);
+                }
+                catch (IOException)
+                {
+                    continue; // fichier momentanément inaccessible : relu au prochain passage
+                }
+            }
 
-            var isLive = running && file == newest;
-            if (!isLive && state.ActiveSessionId is not null)
+            if (state.ActiveSessionId is not null && !(running && (file == newest || IsBeingWritten(file))))
             {
                 CloseActive(db, state, state.LastTimestampUtc ?? file.LastWriteTimeUtc);
                 changed = true;
@@ -144,12 +163,36 @@ public sealed class SessionTracker(ITrackerDbFactory dbFactory, string logsDir, 
         return changed;
     }
 
+    /// <summary>
+    /// Vrai si un client Roblox a encore ce log ouvert en écriture. La date de modification ne suffit pas :
+    /// un second lancement de Roblox crée un log plus récent sans que la partie en cours s'arrête.
+    /// </summary>
+    private static bool IsBeingWritten(FileInfo file)
+    {
+        try
+        {
+            using var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+            return false;
+        }
+        catch (FileNotFoundException)
+        {
+            return false;
+        }
+        catch (IOException)
+        {
+            return true;
+        }
+    }
+
     private static bool ReadNewLines(TrackerDbContext db, FileInfo file, LogFileState state)
     {
         byte[] buffer;
         using (var fs = new FileStream(file.FullName, FileMode.Open, FileAccess.Read,
                    FileShare.ReadWrite | FileShare.Delete))
         {
+            if (fs.Length < state.Position) state.Position = 0; // fichier réécrit
+            if (fs.Length == state.Position) return false;
+
             fs.Seek(state.Position, SeekOrigin.Begin);
             buffer = new byte[fs.Length - state.Position];
             var read = 0;
@@ -212,6 +255,7 @@ public sealed class SessionTracker(ITrackerDbFactory dbFactory, string logsDir, 
                     }
                 }
                 session.EndUtc = null;
+                state.LastJoinUtc = join.TimestampUtc;
 
                 db.SaveChanges();
                 state.ActiveSessionId = session.Id;
@@ -237,6 +281,9 @@ public sealed class SessionTracker(ITrackerDbFactory dbFactory, string logsDir, 
                 }
                 return true;
             }
+
+            case LeftEvent { Explicit: false } closed when closed.TimestampUtc - state.LastJoinUtc < JoinGrace:
+                return false;
 
             case LeftEvent left when state.ActiveSessionId is not null:
                 CloseActive(db, state, left.TimestampUtc);

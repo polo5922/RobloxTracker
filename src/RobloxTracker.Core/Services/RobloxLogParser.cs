@@ -11,8 +11,11 @@ public sealed record JoinedEvent(DateTime TimestampUtc, long PlaceId, string Job
 /// <summary>Le log associe une place à son univers (« placeid:… universeid:… »).</summary>
 public sealed record UniverseEvent(DateTime TimestampUtc, long PlaceId, long UniverseId) : LogEvent(TimestampUtc);
 
-/// <summary>Le joueur quitte le serveur.</summary>
-public sealed record LeftEvent(DateTime TimestampUtc) : LogEvent(TimestampUtc);
+/// <summary>
+/// Le joueur quitte le serveur. <paramref name="Explicit"/> : retour à l'accueil ; sinon simple fermeture d'une connexion,
+/// qui peut être celle du serveur précédent.
+/// </summary>
+public sealed record LeftEvent(DateTime TimestampUtc, bool Explicit = false) : LogEvent(TimestampUtc);
 
 /// <summary>
 /// Analyse les lignes des logs du client Roblox, de la forme
@@ -63,7 +66,7 @@ public static partial class RobloxLogParser
                 long.Parse(universe.Groups["id"].ValueSpan));
 
         if (LeaveRegex().IsMatch(line))
-            return new LeftEvent(ts);
+            return new LeftEvent(ts, line.Contains("leaveUGCGameInternal", StringComparison.Ordinal));
 
         return null;
     }
