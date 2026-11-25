@@ -8,6 +8,8 @@
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?logo=windows)
 ![.NET](https://img.shields.io/badge/.NET-9-512BD4?logo=dotnet)
 
+**[Voir sur la Marketplace](https://paul-barbaux.dev/marketplace/roblox-tracker)**
+
 ![Tableau de bord](docs/images/dashboard.png)
 
 </div>
