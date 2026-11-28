@@ -11,8 +11,13 @@ public sealed record PeriodGameItem(long UniverseId, string Name, string? IconPa
 /// <summary>
 /// Panneau « Statistiques par période » : choix d'un mois ou d'une année, graphe et chiffres clés.
 /// Partagé par le tableau de bord (tous les jeux) et la fiche d'un jeu (<paramref name="universeId"/>).
+/// Un clic sur une barre ouvre la journée (vue mois) ou le mois (vue année).
 /// </summary>
-public partial class PeriodStatsViewModel(StatsService stats, long? universeId = null, Action<long>? openGame = null) : ObservableObject
+public partial class PeriodStatsViewModel(
+    StatsService stats,
+    long? universeId = null,
+    Action<long>? openGame = null,
+    Action<DateTime, long?>? openDay = null) : ObservableObject
 {
     private const double ChartHeight = 150;
     private static readonly CultureInfo French = CultureInfo.GetCultureInfo("fr-FR");
@@ -69,6 +74,24 @@ public partial class PeriodStatsViewModel(StatsService stats, long? universeId =
     [RelayCommand]
     private void OpenGame(long id) => openGame?.Invoke(id);
 
+    [RelayCommand]
+    private void SelectBar(BarItem? bar)
+    {
+        if (bar?.Date is not { } date) return;
+        if (!IsYearMode)
+        {
+            openDay?.Invoke(date, universeId);
+            return;
+        }
+
+        _loading = true;
+        SelectedYear = date.Year;
+        SelectedMonth = Months[date.Month - 1];
+        IsYearMode = false;
+        _loading = false;
+        Load();
+    }
+
     private void Shift(int delta)
     {
         var start = new DateTime(SelectedYear, SelectedMonth?.Id ?? 1, 1);
@@ -94,10 +117,12 @@ public partial class PeriodStatsViewModel(StatsService stats, long? universeId =
         Bars = p.Buckets.Select(b => new BarItem(
             IsYearMode ? Capitalize(b.Date.ToString("MMM", French).TrimEnd('.')) : b.Date.Day.ToString(),
             (IsYearMode ? Capitalize(b.Date.ToString("MMMM yyyy", French)) : b.Date.ToString("dddd d MMMM", French))
-                + $" : {DurationConverter.Format(b.Total)}",
+                + $" : {DurationConverter.Format(b.Total)}"
+                + (IsYearMode ? "\nClique pour voir le mois" : openDay is null ? "" : "\nClique pour voir la journée"),
             max <= 0 ? 0 : Math.Max(b.Total.TotalSeconds > 0 ? 3 : 0, b.Total.TotalSeconds / max * ChartHeight),
             IsYearMode ? b.Date.Year == today.Year && b.Date.Month == today.Month : b.Date == today,
-            IsYearMode ? DurationConverter.Short(b.Total) : "")).ToList();
+            IsYearMode ? DurationConverter.Short(b.Total) : "",
+            b.Date)).ToList();
 
         Total = p.Total;
         SessionCount = p.SessionCount;

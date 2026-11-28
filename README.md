@@ -18,6 +18,7 @@
 
 - **Suivi automatique** : l'app lit les journaux que Roblox écrit pendant une partie. Elle détecte quand tu rejoins et quand tu quittes une expérience, sans injection et sans modifier Roblox.
 - **Tableau de bord** : temps du jour, des 7 derniers jours et total, graphique sur 14 jours et statistiques par mois ou par année.
+- **Détail d'une journée** : clique sur un jour dans un graphique pour voir son temps de jeu heure par heure, les jeux joués et les sessions.
 - **Bibliothèque** : tous tes jeux avec icône, temps joué, favoris et tri.
 - **Fiche de jeu** : temps total, nombre de sessions, durée moyenne, statistiques par période, et boutons *Jouer* et *Page Roblox*.
 - **Historique** : chaque session avec son début, sa fin et sa durée. Les reconnexions rapprochées sont fusionnées.
@@ -37,6 +38,8 @@
 | ![Historique](docs/images/historique.png) | ![Mises à jour](docs/images/mises-a-jour.png) |
 | **Statistiques du mois** | **Paramètres** |
 | ![Statistiques par période](docs/images/dashboard-mois.png) | ![Paramètres](docs/images/parametres.png) |
+| **Détail d'une journée** | |
+| ![Détail d'une journée](docs/images/journee.png) | |
 
 ## 📥 Installation
 

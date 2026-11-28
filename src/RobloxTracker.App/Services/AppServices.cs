@@ -70,9 +70,13 @@ public sealed class StartupService
 public sealed class NavigationService
 {
     public event Action<long>? OpenGameRequested;
+    public event Action<DateTime, long?>? OpenDayRequested;
     public event Action? BackRequested;
 
     public void OpenGame(long universeId) => OpenGameRequested?.Invoke(universeId);
+
+    /// <summary>Ouvre le détail d'une journée, limité à un jeu si <paramref name="universeId"/> est renseigné.</summary>
+    public void OpenDay(DateTime day, long? universeId = null) => OpenDayRequested?.Invoke(day.Date, universeId);
 
     public void GoBack() => BackRequested?.Invoke();
 }

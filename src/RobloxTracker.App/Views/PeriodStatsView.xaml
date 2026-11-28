@@ -78,16 +78,19 @@
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <DockPanel Background="Transparent" ToolTip="{Binding Tooltip}">
-                                <TextBlock x:Name="day" DockPanel.Dock="Bottom" Text="{Binding Label}" Style="{StaticResource Muted}"
-                                           FontSize="10" HorizontalAlignment="Center" Height="22" Padding="0,6,0,0" />
-                                <StackPanel VerticalAlignment="Bottom">
-                                    <TextBlock x:Name="value" Text="{Binding ValueText}" Style="{StaticResource Muted}" FontSize="10"
-                                               HorizontalAlignment="Center" Margin="0,0,0,4" />
-                                    <Border x:Name="bar" Height="{Binding BarHeight}" MaxWidth="34" Margin="2,0"
-                                            CornerRadius="4,4,1,1" Background="{StaticResource BarGradient}" Opacity="0.55" />
-                                </StackPanel>
-                            </DockPanel>
+                            <Button Style="{StaticResource BarButton}" CommandParameter="{Binding}"
+                                    Command="{Binding DataContext.SelectBarCommand, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                <DockPanel Background="Transparent" ToolTip="{Binding Tooltip}">
+                                    <TextBlock x:Name="day" DockPanel.Dock="Bottom" Text="{Binding Label}" Style="{StaticResource Muted}"
+                                               FontSize="10" HorizontalAlignment="Center" Height="22" Padding="0,6,0,0" />
+                                    <StackPanel VerticalAlignment="Bottom">
+                                        <TextBlock x:Name="value" Text="{Binding ValueText}" Style="{StaticResource Muted}" FontSize="10"
+                                                   HorizontalAlignment="Center" Margin="0,0,0,4" />
+                                        <Border x:Name="bar" Height="{Binding BarHeight}" MaxWidth="34" Margin="2,0"
+                                                CornerRadius="4,4,1,1" Background="{StaticResource BarGradient}" Opacity="0.55" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Button>
                             <DataTemplate.Triggers>
                                 <DataTrigger Binding="{Binding IsToday}" Value="True">
                                     <Setter TargetName="bar" Property="Opacity" Value="1" />

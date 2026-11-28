@@ -480,6 +480,21 @@
         </Setter>
     </Style>
 
+    <!-- Barre de graphe cliquable : sans fond propre, le survol est porté par la barre elle-même -->
+    <Style x:Key="BarButton" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- Barre de défilement fine -->
     <ControlTemplate x:Key="ScrollThumb" TargetType="Thumb">
         <Border x:Name="bd" Background="{StaticResource SurfaceRaisedBrush}" CornerRadius="4" Margin="1" />

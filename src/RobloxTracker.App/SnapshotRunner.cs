@@ -28,7 +28,15 @@ internal static class SnapshotRunner
             vm.SelectedNav = vm.NavItems[i];
             await CaptureAsync(window, Path.Combine(outputDir, $"{i + 1}-{Slug(vm.NavItems[i].Title)}.png"));
             if (vm.NavItems[i].Page is DashboardViewModel dashboard)
+            {
                 await CapturePeriodAsync(window, dashboard.Period, Path.Combine(outputDir, "1b-periode"));
+                // Détail du jour le plus joué des 14 derniers jours.
+                if (dashboard.Daily.Where(b => b.BarHeight > 0).MaxBy(b => b.BarHeight) is { } bar)
+                {
+                    dashboard.OpenDayCommand.Execute(bar);
+                    await CaptureAsync(window, Path.Combine(outputDir, "1c-journee.png"));
+                }
+            }
         }
 
         if (firstGameId() is { } id)

@@ -31,6 +31,11 @@ public partial class GameDetailView : UserControl
     public GameDetailView() => InitializeComponent();
 }
 
+public partial class DayDetailView : UserControl
+{
+    public DayDetailView() => InitializeComponent();
+}
+
 public partial class HistoryView : UserControl
 {
     public HistoryView() => InitializeComponent();

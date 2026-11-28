@@ -30,7 +30,7 @@ public partial class GameDetailViewModel(
 
     public long UniverseId { get; } = universeId;
 
-    public PeriodStatsViewModel Period { get; } = new(stats, universeId);
+    public PeriodStatsViewModel Period { get; } = new(stats, universeId, openDay: nav.OpenDay);
 
     [ObservableProperty] private Game? game;
     [ObservableProperty] private GameStats? gameStats;

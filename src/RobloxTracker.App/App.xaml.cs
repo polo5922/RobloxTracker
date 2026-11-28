@@ -195,6 +195,12 @@ public partial class App : Application
             sp.GetRequiredService<StatsService>(),
             sp.GetRequiredService<GameCatalogService>(),
             sp.GetRequiredService<NavigationService>()));
+        services.AddSingleton<Func<DateTime, long?, DayDetailViewModel>>(sp => (day, id) => new DayDetailViewModel(
+            day,
+            id,
+            sp.GetRequiredService<StatsService>(),
+            sp.GetRequiredService<LibraryService>(),
+            sp.GetRequiredService<NavigationService>()));
         services.AddSingleton<MainViewModel>();
 
         return services.BuildServiceProvider();

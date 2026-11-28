@@ -88,4 +88,40 @@ public sealed class StatsServiceTests : IDisposable
         Assert.Equal(2024, stats.GetFirstYear(1));
         Assert.Equal(2025, stats.GetFirstYear(2));
     }
+
+    [Fact]
+    public void Day_stats_split_by_hour_and_game_and_clip_sessions_at_midnight()
+    {
+        AddSession(1, new DateTime(2025, 10, 4, 23, 30, 0), TimeSpan.FromHours(1));     // 30 min le 5
+        AddSession(1, new DateTime(2025, 10, 5, 14, 15, 0), TimeSpan.FromMinutes(90));  // 14 h : 45 min, 15 h : 45 min
+        AddSession(2, new DateTime(2025, 10, 5, 20, 0, 0), TimeSpan.FromHours(3));      // 20 h → 23 h
+        AddSession(2, new DateTime(2025, 10, 6, 10, 0, 0), TimeSpan.FromHours(1));      // autre jour
+
+        var stats = new StatsService(_db);
+        var day = stats.GetDayStats(new DateTime(2025, 10, 5, 18, 0, 0));
+
+        Assert.Equal(new DateTime(2025, 10, 5), day.Date);
+        Assert.Equal(TimeSpan.FromMinutes(30 + 90 + 180), day.Total);
+        Assert.Equal(3, day.SessionCount);
+        Assert.Equal(24, day.Hours.Count);
+        Assert.Equal(TimeSpan.FromMinutes(30), day.Hours[0]);
+        Assert.Equal(TimeSpan.FromMinutes(45), day.Hours[14]);
+        Assert.Equal(TimeSpan.FromMinutes(45), day.Hours[15]);
+        Assert.Equal(TimeSpan.FromHours(1), day.Hours[22]);
+        Assert.Equal(TimeSpan.Zero, day.Hours[23]);
+        Assert.Equal([2L, 1L], day.Games.Select(g => g.Game.UniverseId));
+        Assert.Equal(TimeSpan.FromHours(2), day.Games[1].Total);
+        Assert.Equal(new DateTime(2025, 10, 5).ToUniversalTime(), day.FirstStartUtc);
+        Assert.Equal(new DateTime(2025, 10, 5, 23, 0, 0).ToUniversalTime(), day.LastEndUtc);
+        Assert.Equal(TimeSpan.FromMinutes(30) / 7, day.PreviousWeekAverage); // 23 h 30 → minuit le 4
+
+        var game = stats.GetDayStats(new DateTime(2025, 10, 5), universeId: 1);
+        Assert.Equal(TimeSpan.FromHours(2), game.Total);
+        Assert.Equal(2, game.SessionCount);
+
+        var empty = stats.GetDayStats(new DateTime(2025, 10, 7));
+        Assert.Equal(TimeSpan.Zero, empty.Total);
+        Assert.Empty(empty.Games);
+        Assert.Null(empty.FirstStartUtc);
+    }
 }

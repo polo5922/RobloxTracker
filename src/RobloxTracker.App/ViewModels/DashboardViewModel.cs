@@ -22,7 +22,7 @@ public partial class DashboardViewModel(StatsService stats, LibraryService libra
     [ObservableProperty] private string greeting = "";
     [ObservableProperty] private string dateText = "";
 
-    public PeriodStatsViewModel Period { get; } = new(stats, openGame: nav.OpenGame);
+    public PeriodStatsViewModel Period { get; } = new(stats, openGame: nav.OpenGame, openDay: nav.OpenDay);
 
     public override void Refresh()
     {
@@ -41,10 +41,11 @@ public partial class DashboardViewModel(StatsService stats, LibraryService libra
         var maxDay = days.Max(d => d.Total.TotalSeconds);
         Daily = days.Select(d => new BarItem(
             d.Date.ToString("ddd d", French),
-            $"{d.Date.ToString("dddd d MMMM", French)} : {DurationConverter.Format(d.Total)}",
+            $"{d.Date.ToString("dddd d MMMM", French)} : {DurationConverter.Format(d.Total)}\nClique pour voir la journée",
             maxDay <= 0 ? 0 : Math.Max(d.Total.TotalSeconds > 0 ? 3 : 0, d.Total.TotalSeconds / maxDay * ChartHeight),
             d.Date == DateTime.Today,
-            DurationConverter.Short(d.Total))).ToList();
+            DurationConverter.Short(d.Total),
+            d.Date)).ToList();
 
         var top = games.Where(g => g.Total > TimeSpan.Zero).OrderByDescending(g => g.Total).Take(6).ToList();
         var maxGame = top.Count == 0 ? 1 : top[0].Total.TotalSeconds;
@@ -52,6 +53,12 @@ public partial class DashboardViewModel(StatsService stats, LibraryService libra
 
         RecentSessions = library.GetSessions(limit: 8);
         Period.Refresh();
+    }
+
+    [RelayCommand]
+    private void OpenDay(BarItem? bar)
+    {
+        if (bar?.Date is { } day) nav.OpenDay(day);
     }
 
     [RelayCommand]

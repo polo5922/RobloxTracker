@@ -25,11 +25,12 @@ public sealed class LibraryService(ITrackerDbFactory dbFactory)
 {
     // ----- Sessions -----
 
-    public List<SessionInfo> GetSessions(DateTime? sinceUtc = null, long? universeId = null, int? limit = null)
+    public List<SessionInfo> GetSessions(DateTime? sinceUtc = null, long? universeId = null, int? limit = null, DateTime? untilUtc = null)
     {
         using var db = dbFactory.Create();
         var query = db.Sessions.AsNoTracking();
         if (sinceUtc is { } since) query = query.Where(s => s.EndUtc == null || s.EndUtc > since);
+        if (untilUtc is { } until) query = query.Where(s => s.StartUtc < until);
         if (universeId is { } id) query = query.Where(s => s.UniverseId == id);
         query = query.OrderByDescending(s => s.StartUtc);
         if (limit is { } n) query = query.Take(n);

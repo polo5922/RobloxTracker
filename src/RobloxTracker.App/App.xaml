@@ -20,6 +20,7 @@
             <DataTemplate DataType="{x:Type vm:DashboardViewModel}"><views:DashboardView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:LibraryViewModel}"><views:LibraryView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:GameDetailViewModel}"><views:GameDetailView /></DataTemplate>
+            <DataTemplate DataType="{x:Type vm:DayDetailViewModel}"><views:DayDetailView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:HistoryViewModel}"><views:HistoryView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:UpdatesViewModel}"><views:UpdatesView /></DataTemplate>
             <DataTemplate DataType="{x:Type vm:OrganizeViewModel}"><views:OrganizeView /></DataTemplate>

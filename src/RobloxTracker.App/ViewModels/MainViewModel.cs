@@ -13,6 +13,7 @@ public partial class MainViewModel : ObservableObject
     private readonly DiscordPresenceService _discord;
     private readonly AntiAfkService _antiAfk;
     private readonly Func<long, GameDetailViewModel> _detailFactory;
+    private readonly Func<DateTime, long?, DayDetailViewModel> _dayFactory;
     private readonly Stack<PageViewModel> _back = new();
     private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
     private int _ticks;
@@ -28,13 +29,15 @@ public partial class MainViewModel : ObservableObject
         NavigationService nav,
         DiscordPresenceService discord,
         AntiAfkService antiAfk,
-        Func<long, GameDetailViewModel> detailFactory)
+        Func<long, GameDetailViewModel> detailFactory,
+        Func<DateTime, long?, DayDetailViewModel> dayFactory)
     {
         _library = libraryService;
         _nav = nav;
         _discord = discord;
         _antiAfk = antiAfk;
         _detailFactory = detailFactory;
+        _dayFactory = dayFactory;
         Updates = updates;
 
         NavItems =
@@ -48,6 +51,7 @@ public partial class MainViewModel : ObservableObject
         ];
 
         nav.OpenGameRequested += OpenGame;
+        nav.OpenDayRequested += OpenDay;
         nav.BackRequested += GoBack;
 
         _timer.Tick += (_, _) => Tick();
@@ -99,6 +103,12 @@ public partial class MainViewModel : ObservableObject
         if (CurrentPage is GameDetailViewModel current && current.UniverseId == universeId) return;
         if (CurrentPage is not null) _back.Push(CurrentPage);
         Show(_detailFactory(universeId));
+    }
+
+    private void OpenDay(DateTime day, long? universeId)
+    {
+        if (CurrentPage is not null) _back.Push(CurrentPage);
+        Show(_dayFactory(day, universeId));
     }
 
     private void GoBack() => Show(_back.Count > 0 ? _back.Pop() : SelectedNav?.Page ?? NavItems[0].Page);

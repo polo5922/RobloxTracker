@@ -17,7 +17,8 @@ public sealed record FilterOption(int Id, string Name)
 
 public sealed record NavEntry(string Title, string Glyph, PageViewModel Page);
 
-public sealed record BarItem(string Label, string Tooltip, double BarHeight, bool IsToday, string ValueText = "");
+/// <summary>Barre d'un graphe. <see cref="Date"/> : jour (ou mois) représenté, quand la barre est cliquable.</summary>
+public sealed record BarItem(string Label, string Tooltip, double BarHeight, bool IsToday, string ValueText = "", DateTime? Date = null);
 
 public sealed record TopGameItem(GameCardItem Card, double Ratio, int Rank = 0);
 

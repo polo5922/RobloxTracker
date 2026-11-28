@@ -30,6 +30,21 @@ public sealed record PeriodStats(
     TimeSpan PreviousTotal,
     IReadOnlyList<PeriodGameTotal> TopGames);
 
+/// <summary>
+/// Statistiques d'une journée locale : temps par heure, jeux joués et plage horaire.
+/// Une session à cheval sur minuit ne compte que pour sa partie dans la journée.
+/// <see cref="PreviousWeekAverage"/> : moyenne quotidienne des 7 jours précédents, jours sans partie compris.
+/// </summary>
+public sealed record DayStats(
+    DateTime Date,
+    TimeSpan Total,
+    int SessionCount,
+    IReadOnlyList<TimeSpan> Hours,
+    IReadOnlyList<PeriodGameTotal> Games,
+    DateTime? FirstStartUtc,
+    DateTime? LastEndUtc,
+    TimeSpan PreviousWeekAverage);
+
 /// <summary>Calcule les temps de jeu. Les jours sont ceux du fuseau local ; une session à cheval sur minuit est répartie.</summary>
 public sealed class StatsService(ITrackerDbFactory dbFactory)
 {
@@ -128,6 +143,47 @@ public sealed class StatsService(ITrackerDbFactory dbFactory)
             Sum(all, previousUtc, startUtc),
             top);
     }
+
+    /// <summary>Statistiques du jour local <paramref name="day"/>, limitées au jeu <paramref name="universeId"/> s'il est renseigné.</summary>
+    public DayStats GetDayStats(DateTime day, long? universeId = null)
+    {
+        day = day.Date;
+        var (startUtc, endUtc) = (day.ToUniversalTime(), day.AddDays(1).ToUniversalTime());
+
+        using var db = dbFactory.Create();
+        var weekUtc = day.AddDays(-7).ToUniversalTime();
+        var all = LoadSpans(db)
+            .Where(s => universeId is null || s.UniverseId == universeId)
+            .Where(s => s.StartUtc < endUtc && s.EffectiveEndUtc > weekUtc)
+            .ToList();
+        var spans = all.Where(s => s.EffectiveEndUtc > startUtc).ToList();
+
+        var hours = Enumerable.Range(0, 24)
+            .Select(h => Sum(spans, day.AddHours(h).ToUniversalTime(), day.AddHours(h + 1).ToUniversalTime()))
+            .ToList();
+
+        var totals = spans.Where(s => s.UniverseId != null)
+            .GroupBy(s => s.UniverseId!.Value)
+            .Select(g => (Id: g.Key, Total: Sum(g, startUtc, endUtc)))
+            .Where(x => x.Total > TimeSpan.Zero)
+            .OrderByDescending(x => x.Total)
+            .ToList();
+        var ids = totals.Select(x => x.Id).ToList();
+        var games = db.Games.AsNoTracking().Where(g => ids.Contains(g.UniverseId)).ToDictionary(g => g.UniverseId);
+
+        return new DayStats(
+            day,
+            Sum(spans, startUtc, endUtc),
+            spans.Count,
+            hours,
+            totals.Where(x => games.ContainsKey(x.Id)).Select(x => new PeriodGameTotal(games[x.Id], x.Total)).ToList(),
+            spans.Count == 0 ? null : Max(spans.Min(s => s.StartUtc), startUtc),
+            spans.Count == 0 ? null : Min(spans.Max(s => s.EffectiveEndUtc), endUtc),
+            Sum(all, weekUtc, startUtc) / 7);
+    }
+
+    private static DateTime Max(DateTime a, DateTime b) => a > b ? a : b;
+    private static DateTime Min(DateTime a, DateTime b) => a < b ? a : b;
 
     /// <summary>Première année où une session a été enregistrée (année en cours s'il n'y en a aucune).</summary>
     public int GetFirstYear(long? universeId = null)
